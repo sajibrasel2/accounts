@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POS Billing System - Professional Edition</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .fade-in {
+      animation: fadeIn 0.3s ease-in;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .tab-active {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+    }
+    .tab-inactive {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+    
+    /* Print Styles */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #printReceipt, #printReceipt * {
+        visibility: visible;
+      }
+      #printReceipt {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+      header, .tab-content, #toast {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen flex flex-col">
+  
+  <!-- Header -->
+  <header class="bg-white shadow-md sticky top-0 z-40">
+    <div class="container mx-auto px-4 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-3 rounded-lg">
+            <i class="fas fa-cash-register text-white text-2xl"></i>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-800">POS Billing System</h1>
+            <p class="text-sm text-gray-500" id="businessNameHeader">Professional Edition</p>
+          </div>
+        </div>
+        <div id="whatsappStatus" class="flex items-center space-x-2 px-4 py-2 rounded-lg bg-yellow-50 border border-yellow-200">
+          <div class="animate-pulse h-3 w-3 bg-yellow-500 rounded-full"></div>
+          <span class="text-sm font-medium text-yellow-700">Checking...</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Tab Navigation -->
+  <div class="bg-white shadow-sm border-b">
+    <div class="container mx-auto px-4">
+      <div class="flex space-x-1 overflow-x-auto">
+        <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-active px-6 py-3 font-semibold rounded-t-lg transition-all">
+          <i class="fas fa-chart-line mr-2"></i> Dashboard
+        </button>
+        <button onclick="switchTab('createBill')" id="tab-createBill" class="tab-inactive px-6 py-3 font-semibold rounded-t-lg transition-all">
+          <i class="fas fa-receipt mr-2"></i> Create Bill
+        </button>
+        <button onclick="switchTab('clients')" id="tab-clients" class="tab-inactive px-6 py-3 font-semibold rounded-t-lg transition-all">
+          <i class="fas fa-users mr-2"></i> Clients
+        </button>
+        <button onclick="switchTab('settings')" id="tab-settings" class="tab-inactive px-6 py-3 font-semibold rounded-t-lg transition-all">
+          <i class="fas fa-cog mr-2"></i> Admin Settings
+        </button>
+        <button onclick="switchTab('upgrade')" id="tab-upgrade" class="tab-inactive px-6 py-3 font-semibold rounded-t-lg transition-all">
+          <i class="fas fa-rocket mr-2"></i> <span id="upgradeTabText">Upgrade</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Container -->
+  <main class="container mx-auto px-4 py-8 flex-grow">
+    
+    <!-- Dashboard Tab -->
+    <div id="content-dashboard" class="tab-content">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <!-- Stats Cards -->
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-blue-100 text-sm font-medium">Total Revenue</p>
+              <h3 class="text-3xl font-bold mt-2" id="totalRevenue">৳0.00</h3>
+            </div>
+            <div class="bg-white bg-opacity-20 p-4 rounded-full">
+              <i class="fas fa-dollar-sign text-3xl"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-green-100 text-sm font-medium">Total Clients</p>
+              <h3 class="text-3xl font-bold mt-2" id="totalClients">0</h3>
+            </div>
+            <div class="bg-white bg-opacity-20 p-4 rounded-full">
+              <i class="fas fa-users text-3xl"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-purple-100 text-sm font-medium">Total Bills</p>
+              <h3 class="text-3xl font-bold mt-2" id="totalBills">0</h3>
+            </div>
+            <div class="bg-white bg-opacity-20 p-4 rounded-full">
+              <i class="fas fa-file-invoice text-3xl"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-bold text-gray-800">
+            <i class="fas fa-history text-purple-600 mr-2"></i> Recent Transactions
+          </h2>
+          <button onclick="loadTransactions()" class="text-blue-600 hover:text-blue-800 transition">
+            <i class="fas fa-sync-alt text-lg"></i>
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-gray-50 border-b border-gray-200">
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Client</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Type</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Bill/Paid/Due</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Items</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">WhatsApp</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Date</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="transactionsTableBody" class="divide-y divide-gray-200">
+              <tr>
+                <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                  <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                  <p>Loading transactions...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Bill Tab (POS Style) -->
+    <div id="content-createBill" class="tab-content hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left: Bill Form -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-lg p-6">
+          <h2 class="text-2xl font-bold text-gray-800 mb-6">
+            <i class="fas fa-receipt text-green-600 mr-2"></i> Create New Bill
+          </h2>
+          
+          <form id="createBillForm">
+            <!-- Client Selection -->
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                <i class="fas fa-user-circle text-gray-400 mr-1"></i> Select Client *
+              </label>
+              <select id="billClientPOS" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-lg">
+                <option value="">-- Choose Client --</option>
+              </select>
+            </div>
+
+            <!-- Transaction Type -->
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                <i class="fas fa-list text-gray-400 mr-1"></i> Transaction Type *
+              </label>
+              <select id="billType" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-lg">
+                <option value="INCOME">Income</option>
+                <option value="EXPENSE">Expense</option>
+                <option value="DUE">Due</option>
+              </select>
+            </div>
+
+            <!-- Items Section -->
+            <div class="mb-6">
+              <div class="flex items-center justify-between mb-3">
+                <label class="block text-sm font-medium text-gray-700">
+                  <i class="fas fa-shopping-cart text-gray-400 mr-1"></i> Bill Items *
+                </label>
+                <button type="button" onclick="addBillItem()" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">
+                  <i class="fas fa-plus-circle mr-1"></i> Add Item
+                </button>
+              </div>
+              
+              <div id="billItemsContainer" class="space-y-3">
+                <!-- Items will be added dynamically -->
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                <i class="fas fa-file-alt text-gray-400 mr-1"></i> Additional Notes
+              </label>
+              <textarea id="billNotes" rows="2" placeholder="Optional notes..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"></textarea>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <!-- Generate Button -->
+              <button type="submit" id="btnGenerate" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-lg font-bold text-lg hover:from-blue-700 hover:to-blue-800 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                <i class="fas fa-save mr-2"></i> জেনারেট করুন
+              </button>
+              
+              <!-- Send WhatsApp Button -->
+              <button type="button" id="btnSendWhatsApp" disabled class="bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-lg font-bold text-lg hover:from-green-700 hover:to-green-800 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fab fa-whatsapp mr-2"></i> WhatsApp পাঠান
+              </button>
+              
+              <!-- Print Button -->
+              <button type="button" id="btnPrint" disabled class="bg-gradient-to-r from-purple-600 to-purple-700 text-white py-4 rounded-lg font-bold text-lg hover:from-purple-700 hover:to-purple-800 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fas fa-print mr-2"></i> প্রিন্ট করুন
+              </button>
+            </div>
+            
+            <!-- Bill Generated Info (Hidden initially) -->
+            <div id="billGeneratedInfo" class="hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p class="text-green-800 font-semibold">
+                <i class="fas fa-check-circle mr-2"></i> Bill Generated Successfully!
+              </p>
+              <p class="text-sm text-green-600 mt-1">Transaction ID: <span id="generatedTransactionId" class="font-bold">#</span></p>
+            </div>
+          </form>
+        </div>
+
+        <!-- Right: Bill Summary -->
+        <div class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl shadow-lg p-6 h-fit sticky top-24">
+          <h3 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-calculator text-blue-600 mr-2"></i> Bill Summary
+          </h3>
+          
+          <div class="bg-white rounded-lg p-4 mb-4">
+            <div class="flex justify-between items-center mb-3 pb-3 border-b">
+              <span class="text-gray-600">মোট বিল (Subtotal):</span>
+              <span class="text-xl font-bold text-gray-800" id="summarySubtotal">৳0.00</span>
+            </div>
+            
+            <div class="mb-3">
+              <label class="block text-sm font-medium text-gray-700 mb-2">জমা প্রদান (Paid Amount) ৳</label>
+              <input type="number" id="billPaidAmount" value="0" min="0" step="0.01" onchange="updateSummary()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div class="flex justify-between items-center mb-3 pb-3 border-b">
+              <span class="text-gray-600">বর্তমান বকেয়া:</span>
+              <span class="text-lg font-bold text-orange-600" id="summaryCurrentDue">৳0.00</span>
+            </div>
+            
+            <div class="bg-yellow-50 rounded-lg p-3 mb-3">
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-gray-700">পূর্বের বকেয়া:</span>
+                <span class="font-bold text-gray-800" id="summaryPreviousDue">৳0.00</span>
+              </div>
+            </div>
+            
+            <div class="flex justify-between items-center pt-3 border-t-2 border-gray-300">
+              <span class="text-lg font-bold text-gray-800">সর্বমোট বকেয়া:</span>
+              <span class="text-2xl font-bold text-red-600" id="summaryTotalDue">৳0.00</span>
+            </div>
+          </div>
+          
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+            <i class="fas fa-info-circle mr-1"></i> Select client to see previous due
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clients Tab -->
+    <div id="content-clients" class="tab-content hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Add Client Form -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <h2 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-user-plus text-blue-600 mr-2"></i> Add New Client
+          </h2>
+          <form id="addClientFormTab" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Client Name *</label>
+              <input type="text" id="clientNameTab" required placeholder="Enter name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+              <input type="tel" id="clientPhoneTab" required placeholder="01712345678" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition">
+              <i class="fas fa-plus mr-2"></i> Add Client
+            </button>
+          </form>
+        </div>
+
+        <!-- Clients List -->
+        <div class="lg:col-span-3 bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-800">
+              <i class="fas fa-users text-green-600 mr-2"></i> All Clients
+            </h2>
+            <button onclick="loadClients()" class="text-blue-600 hover:text-blue-800">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="bg-gray-50 border-b">
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Phone</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Balance</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Added</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="clientsTableBody" class="divide-y divide-gray-200">
+                <tr>
+                  <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                    <p>Loading clients...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Settings Tab -->
+    <div id="content-settings" class="tab-content hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- WhatsApp Connection -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <h2 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fab fa-whatsapp text-green-600 mr-2"></i> WhatsApp Connection
+          </h2>
+          
+          <div id="whatsappConnectionStatus" class="mb-4">
+            <div class="flex items-center space-x-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div class="animate-pulse h-4 w-4 bg-yellow-500 rounded-full"></div>
+              <span class="text-yellow-800 font-medium">Checking connection...</span>
+            </div>
+          </div>
+          
+          <div id="whatsappQRContainer" class="hidden">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <p class="text-sm text-blue-800 mb-2">
+                <i class="fas fa-info-circle mr-1"></i> Scan this QR code with WhatsApp:
+              </p>
+              <ol class="text-xs text-blue-700 space-y-1 ml-4 list-decimal">
+                <li>Open WhatsApp on your phone</li>
+                <li>Go to Settings → Linked Devices</li>
+                <li>Click "Link a Device"</li>
+                <li>Scan the QR code below</li>
+              </ol>
+            </div>
+            <div class="flex justify-center p-6 bg-white border-2 border-dashed border-gray-300 rounded-lg">
+              <img id="whatsappQRImage" src="" alt="WhatsApp QR Code" class="max-w-xs">
+            </div>
+          </div>
+        </div>
+
+        <!-- Business Profile Settings -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <h2 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-store text-blue-600 mr-2"></i> Business Profile
+          </h2>
+          
+          <form id="settingsForm" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
+              <input type="text" id="businessName" value="Sajib Digital hub" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Business Phone</label>
+              <input type="tel" id="businessPhone" placeholder="01712345678" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Business Address</label>
+              <textarea id="businessAddress" rows="2" placeholder="Enter address" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Header Message (Bill Top)</label>
+              <textarea id="headerText" rows="2" placeholder="ধন্যবাদ আমাদের সেবা নেওয়ার জন্য" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Footer Message (Bill Bottom)</label>
+              <textarea id="footerText" rows="2" placeholder="আবার আসবেন 🙏" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            
+            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition">
+              <i class="fas fa-save mr-2"></i> Save Settings
+            </button>
+          </form>
+        </div>
+
+        <!-- Business Logo Upload -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <h2 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-image text-purple-600 mr-2"></i> Business Logo
+          </h2>
+          
+          <div class="space-y-4">
+            <!-- Current Logo Preview -->
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+              <p class="text-sm text-gray-600 mb-3">Current Logo</p>
+              <div id="currentLogoPreview" class="flex justify-center items-center h-32 bg-white rounded-lg border-2 border-dashed border-gray-300">
+                <div class="text-gray-400">
+                  <i class="fas fa-image text-4xl mb-2"></i>
+                  <p class="text-sm">No logo uploaded</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Logo Upload Form -->
+            <form id="logoUploadForm" enctype="multipart/form-data">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  <i class="fas fa-upload mr-1"></i> Upload New Logo
+                </label>
+                <input type="file" id="logoFile" accept="image/png,image/jpeg,image/jpg,image/gif" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                <p class="text-xs text-gray-500 mt-1">
+                  <i class="fas fa-info-circle mr-1"></i> PNG, JPG, GIF (Max 2MB, Recommended: 200x80px)
+                </p>
+              </div>
+              
+              <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 transition mt-3">
+                <i class="fas fa-cloud-upload-alt mr-2"></i> Upload Logo
+              </button>
+            </form>
+            
+            <!-- Remove Logo Button -->
+            <button onclick="removeLogo()" id="removeLogoBtn" class="hidden w-full bg-red-100 text-red-700 py-2 rounded-lg font-semibold hover:bg-red-200 transition">
+              <i class="fas fa-trash-alt mr-2"></i> Remove Logo
+            </button>
+          </div>
+        </div>
+
+        <!-- Backup & Restore System (Full Width) -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-lg p-6">
+          <h2 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-database text-purple-600 mr-2"></i> Backup & Restore System
+          </h2>
+          
+          <div class="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 mb-6">
+            <div class="flex items-start">
+              <i class="fas fa-info-circle text-purple-600 mt-1 mr-3"></i>
+              <div>
+                <p class="text-sm text-gray-800 font-semibold mb-1">Dual Backup System</p>
+                <p class="text-xs text-gray-600">
+                  Your data is backed up in 3 formats: MySQL (.sql), JSON (readable format), and CSV (Excel-compatible). 
+                  Backups are stored locally on your device in the <code class="bg-white px-1 rounded">/backups</code> folder.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Backup Actions -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <button onclick="createBackup()" class="bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-lg font-bold hover:from-green-700 hover:to-green-800 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+              <i class="fas fa-download mr-2"></i> Create Backup
+            </button>
+            
+            <button onclick="loadBackupsList()" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-lg font-bold hover:from-blue-700 hover:to-blue-800 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+              <i class="fas fa-list mr-2"></i> View Backups
+            </button>
+            
+            <button onclick="cleanupBackups()" class="bg-gradient-to-r from-orange-600 to-orange-700 text-white py-4 rounded-lg font-bold hover:from-orange-700 hover:to-orange-800 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+              <i class="fas fa-trash-alt mr-2"></i> Cleanup Old
+            </button>
+          </div>
+          
+          <!-- Backup Status -->
+          <div id="backupStatus" class="hidden mb-6">
+            <!-- Will be populated dynamically -->
+          </div>
+          
+          <!-- Available Backups List -->
+          <div id="backupsList" class="hidden">
+            <div class="border-t border-gray-200 pt-6">
+              <h3 class="text-lg font-bold text-gray-800 mb-4">
+                <i class="fas fa-archive text-purple-600 mr-2"></i> Available Backups
+              </h3>
+              
+              <!-- Backup Summary Cards -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-blue-800">MySQL Backups</span>
+                    <i class="fas fa-database text-blue-600 text-xl"></i>
+                  </div>
+                  <p class="text-3xl font-bold text-blue-900" id="mysqlBackupCount">0</p>
+                  <p class="text-xs text-blue-600 mt-1">Complete database dumps</p>
+                </div>
+                
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-green-800">JSON Backups</span>
+                    <i class="fas fa-file-code text-green-600 text-xl"></i>
+                  </div>
+                  <p class="text-3xl font-bold text-green-900" id="jsonBackupCount">0</p>
+                  <p class="text-xs text-green-600 mt-1">Human-readable format</p>
+                </div>
+                
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-purple-800">CSV Backups</span>
+                    <i class="fas fa-file-excel text-purple-600 text-xl"></i>
+                  </div>
+                  <p class="text-3xl font-bold text-purple-900" id="csvBackupCount">0</p>
+                  <p class="text-xs text-purple-600 mt-1">Excel-compatible</p>
+                </div>
+              </div>
+              
+              <!-- Backup Files Tables -->
+              <div class="space-y-6">
+                <!-- MySQL Backups -->
+                <div>
+                  <h4 class="text-md font-bold text-gray-700 mb-2">
+                    <i class="fas fa-database text-blue-600 mr-2"></i> MySQL Backups (.sql)
+                  </h4>
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                      <thead>
+                        <tr class="bg-gray-50 border-b">
+                          <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600">Filename</th>
+                          <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600">Size</th>
+                          <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600">Created</th>
+                          <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="mysqlBackupsTable" class="divide-y divide-gray-200">
+                        <tr>
+                          <td colspan="4" class="px-4 py-4 text-center text-gray-500 text-xs">No backups found</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                
+                <!-- JSON Backups -->
+                <div>
+                  <h4 class="text-md font-bold text-gray-700 mb-2">
+                    <i class="fas fa-file-code text-green-600 mr-2"></i> JSON Backups
+                  </h4>
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                      <thead>
+                        <tr class="bg-gray-50 border-b">
+                          <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600">Folder</th>
+                          <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600">Files</th>
+                          <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600">Created</th>
+                          <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="jsonBackupsTable" class="divide-y divide-gray-200">
+                        <tr>
+                          <td colspan="4" class="px-4 py-4 text-center text-gray-500 text-xs">No backups found</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                
+                <!-- CSV Backups -->
+                <div>
+                  <h4 class="text-md font-bold text-gray-700 mb-2">
+                    <i class="fas fa-file-excel text-purple-600 mr-2"></i> CSV Backups
+                  </h4>
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                      <thead>
+                        <tr class="bg-gray-50 border-b">
+                          <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600">Folder</th>
+                          <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600">Files</th>
+                          <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600">Created</th>
+                          <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="csvBackupsTable" class="divide-y divide-gray-200">
+                        <tr>
+                          <td colspan="4" class="px-4 py-4 text-center text-gray-500 text-xs">No backups found</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Backup Location Info -->
+          <div class="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <p class="text-xs text-gray-600">
+              <i class="fas fa-folder-open text-gray-500 mr-2"></i>
+              <strong>Backup Location:</strong> All backups are saved in the <code class="bg-white px-2 py-1 rounded text-purple-600">/backups</code> folder in your installation directory.
+            </p>
+            <p class="text-xs text-gray-600 mt-2">
+              <i class="fas fa-shield-alt text-gray-500 mr-2"></i>
+              <strong>Tip:</strong> Copy the entire <code>/backups</code> folder to an external drive or cloud storage for extra security.
+            </p>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+
+    <!-- Upgrade/Activation Tab -->
+    <div id="content-upgrade" class="tab-content hidden">
+      <div class="max-w-4xl mx-auto">
+        
+        <!-- System Status Card -->
+        <div id="systemStatusCard" class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-2xl p-8 text-white mb-6">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-3xl font-bold mb-2">
+                <i class="fas fa-shield-alt mr-2"></i> সিস্টেম স্ট্যাটাস
+              </h2>
+              <p class="text-blue-100" id="systemStatusMessage">Loading...</p>
+            </div>
+            <div class="text-right">
+              <div class="bg-white bg-opacity-20 px-4 py-2 rounded-lg">
+                <p class="text-sm text-blue-100">Machine ID</p>
+                <p class="font-mono text-xs" id="displayMachineId">-</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Status Details -->
+          <div id="trialInfoBox" class="hidden bg-white bg-opacity-20 rounded-lg p-6 backdrop-blur-sm">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="text-center">
+                <p class="text-blue-100 text-sm mb-1">Days Remaining</p>
+                <p class="text-4xl font-bold" id="daysRemainingDisplay">-</p>
+              </div>
+              <div class="text-center">
+                <p class="text-blue-100 text-sm mb-1">Days Used</p>
+                <p class="text-4xl font-bold" id="daysUsedDisplay">-</p>
+              </div>
+              <div class="text-center">
+                <p class="text-blue-100 text-sm mb-1">Expires On</p>
+                <p class="text-lg font-bold" id="expiryDateDisplay">-</p>
+              </div>
+            </div>
+          </div>
+          
+          <div id="activatedInfoBox" class="hidden bg-white bg-opacity-20 rounded-lg p-6 backdrop-blur-sm">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-blue-100 text-sm mb-1">License Status</p>
+                <p class="text-2xl font-bold">✅ Activated</p>
+              </div>
+              <div class="text-right">
+                <p class="text-blue-100 text-sm mb-1">Days Remaining</p>
+                <p class="text-3xl font-bold" id="licenseDaysRemaining">-</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Start Free Trial Card -->
+          <div id="startTrialCard" class="hidden bg-white rounded-xl shadow-lg p-6">
+            <div class="text-center mb-6">
+              <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full mb-4">
+                <i class="fas fa-gift text-white text-3xl"></i>
+              </div>
+              <h3 class="text-2xl font-bold text-gray-800 mb-2">15-Day Free Trial</h3>
+              <p class="text-gray-600">শুরু করুন বিনামূল্যে ১৫ দিনের ট্রায়াল</p>
+            </div>
+            
+            <ul class="space-y-3 mb-6">
+              <li class="flex items-start text-sm text-gray-700">
+                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                <span>সম্পূর্ণ ফিচার access</span>
+              </li>
+              <li class="flex items-start text-sm text-gray-700">
+                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                <span>WhatsApp automation</span>
+              </li>
+              <li class="flex items-start text-sm text-gray-700">
+                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                <span>Unlimited bills & clients</span>
+              </li>
+              <li class="flex items-start text-sm text-gray-700">
+                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                <span>No credit card required</span>
+              </li>
+            </ul>
+            
+            <button onclick="startFreeTrial()" class="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-lg font-bold text-lg hover:from-green-700 hover:to-green-800 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+              <i class="fas fa-play-circle mr-2"></i> Start Free Trial
+            </button>
+          </div>
+
+          <!-- Activate License Card -->
+          <div id="activateLicenseCard" class="bg-white rounded-xl shadow-lg p-6">
+            <div class="text-center mb-6">
+              <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full mb-4">
+                <i class="fas fa-key text-white text-3xl"></i>
+              </div>
+              <h3 class="text-2xl font-bold text-gray-800 mb-2">Activate License</h3>
+              <p class="text-gray-600">লাইসেন্স কী দিয়ে activate করুন</p>
+            </div>
+            
+            <form id="activateLicenseForm" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  <i class="fas fa-user text-gray-400 mr-1"></i> Client Name *
+                </label>
+                <input type="text" id="licenseClientName" required placeholder="আপনার নাম" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  <i class="fas fa-key text-gray-400 mr-1"></i> License Key *
+                </label>
+                <input type="text" id="licenseKeyInput" required placeholder="SAJIB-XXXX-XXXX-XXXX" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm">
+                <p class="text-xs text-gray-500 mt-1">License key পেতে যোগাযোগ করুন: 01739354392</p>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  <i class="fas fa-calendar text-gray-400 mr-1"></i> Expiry Date *
+                </label>
+                <input type="date" id="licenseExpiryDate" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              </div>
+              
+              <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-lg font-bold text-lg hover:from-blue-700 hover:to-purple-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                <i class="fas fa-rocket mr-2"></i> Activate Now
+              </button>
+            </form>
+          </div>
+
+          <!-- Contact Support Card -->
+          <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-lg p-6 text-white md:col-span-2">
+            <div class="text-center mb-4">
+              <h3 class="text-xl font-bold mb-2">
+                <i class="fas fa-headset mr-2"></i> Need Help?
+              </h3>
+              <p class="text-slate-300">License কিনতে বা সাহায্যের জন্য যোগাযোগ করুন</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <a href="https://wa.me/8801739354392" target="_blank" class="flex items-center justify-center space-x-3 bg-green-600 hover:bg-green-700 py-3 rounded-lg transition">
+                <i class="fab fa-whatsapp text-2xl"></i>
+                <span class="font-semibold">WhatsApp</span>
+              </a>
+              <a href="https://facebook.com/sajibrasel2" target="_blank" class="flex items-center justify-center space-x-3 bg-blue-600 hover:bg-blue-700 py-3 rounded-lg transition">
+                <i class="fab fa-facebook text-2xl"></i>
+                <span class="font-semibold">Facebook</span>
+              </a>
+              <a href="tel:01739354392" class="flex items-center justify-center space-x-3 bg-purple-600 hover:bg-purple-700 py-3 rounded-lg transition">
+                <i class="fas fa-phone text-2xl"></i>
+                <span class="font-semibold">Call Now</span>
+              </a>
+            </div>
+            
+            <div class="mt-6 text-center">
+              <p class="text-sm text-slate-400 mb-2">Pricing:</p>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                <div class="bg-white bg-opacity-10 rounded-lg py-2">
+                  <p class="text-slate-300">1 Month</p>
+                  <p class="font-bold text-lg">৳500</p>
+                </div>
+                <div class="bg-white bg-opacity-10 rounded-lg py-2">
+                  <p class="text-slate-300">3 Months</p>
+                  <p class="font-bold text-lg">৳1,200</p>
+                </div>
+                <div class="bg-white bg-opacity-10 rounded-lg py-2">
+                  <p class="text-slate-300">6 Months</p>
+                  <p class="font-bold text-lg">৳2,000</p>
+                </div>
+                <div class="bg-white bg-opacity-10 rounded-lg py-2">
+                  <p class="text-slate-300">12 Months</p>
+                  <p class="font-bold text-lg">৳3,000</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gradient-to-r from-slate-800 to-slate-900 text-white mt-12">
+    <div class="container mx-auto px-4 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- About Section -->
+        <div>
+          <div class="flex items-center space-x-3 mb-4">
+            <div class="bg-blue-600 p-3 rounded-lg">
+              <i class="fas fa-cash-register text-white text-2xl"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold">POS Billing System</h3>
+              <p class="text-sm text-gray-400">Professional Edition</p>
+            </div>
+          </div>
+          <p class="text-gray-300 text-sm leading-relaxed">
+            সম্পূর্ণ বাংলা ভাষায় তৈরি পেশাদার বিলিং সিস্টেম। WhatsApp automation, ledger tracking এবং আরও অনেক কিছু।
+          </p>
+        </div>
+
+        <!-- Quick Links -->
+        <div>
+          <h4 class="text-lg font-bold mb-4 text-blue-400">
+            <i class="fas fa-link mr-2"></i> Quick Links
+          </h4>
+          <ul class="space-y-2 text-gray-300">
+            <li>
+              <a href="#" onclick="switchTab('dashboard')" class="hover:text-blue-400 transition flex items-center">
+                <i class="fas fa-chart-line w-5"></i> Dashboard
+              </a>
+            </li>
+            <li>
+              <a href="#" onclick="switchTab('createBill')" class="hover:text-blue-400 transition flex items-center">
+                <i class="fas fa-receipt w-5"></i> Create Bill
+              </a>
+            </li>
+            <li>
+              <a href="#" onclick="switchTab('clients')" class="hover:text-blue-400 transition flex items-center">
+                <i class="fas fa-users w-5"></i> Clients
+              </a>
+            </li>
+            <li>
+              <a href="#" onclick="switchTab('settings')" class="hover:text-blue-400 transition flex items-center">
+                <i class="fas fa-cog w-5"></i> Settings
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Features -->
+        <div>
+          <h4 class="text-lg font-bold mb-4 text-blue-400">
+            <i class="fas fa-star mr-2"></i> Features
+          </h4>
+          <ul class="space-y-2 text-gray-300 text-sm">
+            <li class="flex items-start">
+              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+              <span>Multi-item billing with ledger</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+              <span>WhatsApp automation</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+              <span>Edit & resend bills</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+              <span>Print professional receipts</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+              <span>Previous due tracking</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="border-t border-gray-700 my-6"></div>
+
+      <!-- Copyright Section -->
+      <div class="text-center">
+        <div class="mb-3">
+          <p class="text-gray-400 text-sm mb-2">Powered by</p>
+          <h3 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            ✨ Sajib Digital Hub ✨
+          </h3>
+        </div>
+        <p class="text-gray-400 text-sm">
+          © <span id="currentYear"></span> Sajib Digital Hub. All rights reserved.
+        </p>
+        <p class="text-gray-500 text-xs mt-2">
+          <i class="fas fa-code mr-1"></i> Version 2.2.0 | 
+          <i class="fas fa-heart text-red-500 mx-1"></i> Made with love in Bangladesh
+        </p>
+        <div class="mt-4 flex justify-center space-x-4">
+          <a href="https://facebook.com/sajibrasel2" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-blue-500 transition transform hover:scale-110" title="Facebook: @sajibrasel2">
+            <i class="fab fa-facebook text-2xl"></i>
+          </a>
+          <a href="https://wa.me/8801739354392" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-green-500 transition transform hover:scale-110" title="WhatsApp: 01739354392">
+            <i class="fab fa-whatsapp text-2xl"></i>
+          </a>
+          <a href="https://youtube.com/@sajibrasel2" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-red-500 transition transform hover:scale-110" title="YouTube: @sajibrasel2">
+            <i class="fab fa-youtube text-2xl"></i>
+          </a>
+          <a href="mailto:contact@sajibdigitalhub.com" class="text-gray-400 hover:text-purple-500 transition transform hover:scale-110" title="Email Us">
+            <i class="fas fa-envelope text-2xl"></i>
+          </a>
+        </div>
+        <div class="mt-3 text-xs text-gray-500">
+          <p>
+            <i class="fab fa-facebook-messenger mr-1"></i> Facebook: <a href="https://facebook.com/sajibrasel2" target="_blank" class="text-blue-400 hover:underline">@sajibrasel2</a> | 
+            <i class="fab fa-whatsapp mr-1 ml-2"></i> WhatsApp: <a href="https://wa.me/8801739354392" target="_blank" class="text-green-400 hover:underline">01739354392</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="hidden fixed top-4 right-4 z-50 fade-in">
+    <div id="toastContent" class="rounded-lg shadow-2xl px-6 py-4 flex items-center space-x-3 min-w-[300px]">
+      <i id="toastIcon" class="text-2xl"></i>
+      <div>
+        <p id="toastTitle" class="font-semibold text-sm"></p>
+        <p id="toastMessage" class="text-xs opacity-90"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Client Modal -->
+  <div id="editClientModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md m-4">
+      <h3 class="text-xl font-bold text-gray-800 mb-4">Edit Client</h3>
+      <form id="editClientForm" class="space-y-4">
+        <input type="hidden" id="editClientId">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Client Name</label>
+          <input type="text" id="editClientName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+          <input type="tel" id="editClientPhone" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div class="flex space-x-3">
+          <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700">
+            <i class="fas fa-save mr-1"></i> Save
+          </button>
+          <button type="button" onclick="closeEditModal()" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-400">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Client Statement Modal -->
+  <div id="clientStatementModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center overflow-y-auto">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-4xl m-4 my-8">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-gray-800">
+          <i class="fas fa-file-invoice text-purple-600 mr-2"></i> Client Statement
+        </h3>
+        <button onclick="closeStatementModal()" class="text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times text-2xl"></i>
+        </button>
+      </div>
+      
+      <!-- Client Info -->
+      <div class="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 mb-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-sm text-gray-600">Client Name</p>
+            <p class="font-bold text-gray-800" id="statementClientName">-</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-600">Phone</p>
+            <p class="font-bold text-gray-800" id="statementClientPhone">-</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Date Filter -->
+      <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+        <h4 class="font-semibold text-gray-800 mb-3">
+          <i class="fas fa-calendar text-blue-600 mr-2"></i> Select Period
+        </h4>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <button onclick="setStatementPeriod('1month')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 py-2 rounded-lg font-semibold transition">
+            1 Month
+          </button>
+          <button onclick="setStatementPeriod('2months')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 py-2 rounded-lg font-semibold transition">
+            2 Months
+          </button>
+          <button onclick="setStatementPeriod('3months')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 py-2 rounded-lg font-semibold transition">
+            3 Months
+          </button>
+          <button onclick="setStatementPeriod('6months')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 py-2 rounded-lg font-semibold transition">
+            6 Months
+          </button>
+          <button onclick="setStatementPeriod('all')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 py-2 rounded-lg font-semibold transition">
+            All Time
+          </button>
+        </div>
+        
+        <div class="mt-3 grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">From Date</label>
+            <input type="date" id="statementFromDate" onchange="loadClientStatement()" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">To Date</label>
+            <input type="date" id="statementToDate" onchange="loadClientStatement()" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Statement Content -->
+      <div id="statementContent" class="bg-gray-50 rounded-lg p-4 mb-4 max-h-96 overflow-y-auto">
+        <div class="text-center text-gray-500 py-8">
+          <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+          <p>Loading statement...</p>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="flex space-x-3">
+        <button onclick="printStatement()" class="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 rounded-lg font-bold hover:from-purple-700 hover:to-purple-800 transition">
+          <i class="fas fa-print mr-2"></i> Print Statement
+        </button>
+        <button onclick="sendStatementWhatsApp()" class="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white py-3 rounded-lg font-bold hover:from-green-700 hover:to-green-800 transition">
+          <i class="fab fa-whatsapp mr-2"></i> Send WhatsApp
+        </button>
+        <button onclick="closeStatementModal()" class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-bold hover:bg-gray-400 transition">
+          <i class="fas fa-times mr-2"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Bill Modal -->
+  <div id="editBillModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center overflow-y-auto">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-3xl m-4 my-8">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-gray-800">
+          <i class="fas fa-edit text-blue-600 mr-2"></i> সংশোধন করুন (Edit Bill)
+        </h3>
+        <button onclick="closeEditBillModal()" class="text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times text-2xl"></i>
+        </button>
+      </div>
+      
+      <form id="editBillForm" class="space-y-4">
+        <input type="hidden" id="editTransactionId">
+        <input type="hidden" id="editClientId">
+        
+        <!-- Client Info (Read-only) -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-600">ক্লায়েন্ট (Client)</p>
+              <p class="font-bold text-gray-800" id="editClientName">-</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">পূর্বের বকেয়া (Previous Due)</p>
+              <p class="font-bold text-orange-600" id="editPreviousDue">৳0.00</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Items Section -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <label class="block text-sm font-medium text-gray-700">
+              <i class="fas fa-shopping-cart text-gray-400 mr-1"></i> বিল আইটেম (Bill Items) *
+            </label>
+            <button type="button" onclick="addEditBillItem()" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">
+              <i class="fas fa-plus-circle mr-1"></i> Add Item
+            </button>
+          </div>
+          
+          <div id="editBillItemsContainer" class="space-y-3">
+            <!-- Items will be added dynamically -->
+          </div>
+        </div>
+        
+        <!-- Paid Amount -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">জমা প্রদান (Paid Amount) ৳</label>
+            <input type="number" id="editPaidAmount" value="0" min="0" step="0.01" onchange="updateEditSummary()" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg p-4">
+            <p class="text-sm text-gray-600 mb-1">নতুন মোট বকেয়া (New Total Due)</p>
+            <p class="text-2xl font-bold text-red-600" id="editNewTotalDue">৳0.00</p>
+          </div>
+        </div>
+        
+        <!-- Notes -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="fas fa-file-alt text-gray-400 mr-1"></i> নোট (Notes)
+          </label>
+          <textarea id="editBillNotes" rows="2" placeholder="Optional notes..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex space-x-3 pt-4 border-t">
+          <button type="submit" class="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white py-3 rounded-lg font-bold hover:from-green-700 hover:to-green-800 transition">
+            <i class="fas fa-save mr-2"></i> সংশোধন সেভ করুন (Save Changes)
+          </button>
+          <button type="button" onclick="closeEditBillModal()" class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-bold hover:bg-gray-400 transition">
+            <i class="fas fa-times mr-2"></i> বাতিল (Cancel)
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Print Receipt (Hidden) -->
+  <div id="printReceipt" class="hidden print:block max-w-md mx-auto p-8 font-mono text-sm">
+    <!-- Will be populated dynamically -->
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

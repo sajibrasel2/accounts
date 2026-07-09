@@ -1,0 +1,190 @@
+═══════════════════════════════════════════════
+🔑 লাইসেন্স কী কোথায় বসাবেন? (Quick Guide)
+═══════════════════════════════════════════════
+
+📌 সংক্ষিপ্ত উত্তর:
+
+POS System folder এর মধ্যে .env ফাইলে বসাবেন
+
+═══════════════════════════════════════════════
+📂 স্টেপ বাই স্টেপ:
+═══════════════════════════════════════════════
+
+1️⃣ POS System folder খুলুন
+   (যেখানে software install করেছেন)
+
+2️⃣ .env ফাইল খুঁজুন
+   (লুকানো থাকলে hidden files দেখান)
+
+3️⃣ Notepad দিয়ে ফাইল open করুন
+
+4️⃣ নিচের 3টি line পরিবর্তন করুন:
+
+   Before (পুরাতন):
+   ─────────────────────────────────
+   LICENSE_CLIENT_NAME=Demo User
+   LICENSE_KEY=DEMO-KEY-EXPIRES-SOON
+   LICENSE_EXPIRY=2025-01-31
+   ─────────────────────────────────
+
+   After (নতুন - মেসেজ থেকে copy করুন):
+   ─────────────────────────────────
+   LICENSE_CLIENT_NAME=আপনার নাম
+   LICENSE_KEY=SAJIB-XXXXXXXX-XXXXXXXX
+   LICENSE_EXPIRY=2025-XX-XX
+   ─────────────────────────────────
+
+5️⃣ Save করুন (Ctrl+S)
+
+6️⃣ Server restart করুন:
+   - Ctrl+C চেপে বন্ধ করুন
+   - আবার node server.js চালান
+
+7️⃣ যাচাই করুন:
+   Terminal এ দেখবেন:
+   ✅ LICENSE VALID
+
+═══════════════════════════════════════════════
+⚠️ গুরুত্বপূর্ণ সতর্কতা:
+═══════════════════════════════════════════════
+
+❌ এই ভুলগুলো করবেন না:
+
+1. LICENSE_KEY = SAJIB-... (= এর আগে-পরে space)
+2. License key এর spelling ভুল
+3. তারিখ DD-MM-YYYY format এ লেখা (ভুল!)
+4. File save না করে server restart করা
+5. .env.txt নামে save করা (ভুল!)
+
+✅ সঠিক উপায়:
+
+1. LICENSE_KEY=SAJIB-... (কোন space নেই)
+2. হুবহু copy-paste করুন
+3. তারিখ YYYY-MM-DD format এ (2025-01-31)
+4. Ctrl+S চেপে save করুন
+5. শুধু .env নামে save করুন
+
+═══════════════════════════════════════════════
+🛠️ .env ফাইল কোথায়?
+═══════════════════════════════════════════════
+
+Windows এ:
+
+📁 C:\Users\YourName\Desktop\POS-System\.env
+📁 D:\Projects\billing-system\.env
+
+যদি দেখা না যায়:
+
+1. File Explorer খুলুন
+2. View → Show → Hidden items (✓)
+3. এখন .env দেখা যাবে
+
+═══════════════════════════════════════════════
+🔄 কিভাবে Server Restart করবেন?
+═══════════════════════════════════════════════
+
+Command Prompt এ:
+
+1. Ctrl+C চাপুন (server বন্ধ হবে)
+2. নিচের command টাইপ করুন:
+
+   node server.js
+
+   অথবা
+
+   npm start
+
+3. Enter চাপুন
+4. Terminal এ দেখবেন:
+
+   ✅ LICENSE VALID
+      Client: আপনার নাম
+      Expires: 31 January 2025
+
+5. Browser এ যান: http://localhost:3000
+
+═══════════════════════════════════════════════
+❓ সমস্যা হলে কি করবেন?
+═══════════════════════════════════════════════
+
+যদি "LICENSE INVALID" বলে:
+
+1. .env ফাইল আবার check করুন
+2. মেসেজ থেকে আবার copy-paste করুন
+3. কোন space বা enter নেই তো?
+4. File save করেছেন তো?
+5. Server restart করেছেন তো?
+
+তবুও না হলে:
+
+📱 WhatsApp: 01739354392
+💬 Facebook: fb.com/sajibrasel2
+📧 Email: raselsajib25@gmail.com
+
+Screen recording বা screenshot পাঠান,
+সাথে সাথে সমাধান পাবেন!
+
+═══════════════════════════════════════════════
+📹 Video Tutorial:
+═══════════════════════════════════════════════
+
+পুরো process এর video দেখতে চাইলে:
+
+YouTube: @sajibrasel2
+Search: "POS System License Install"
+
+অথবা WhatsApp করুন video link পাবেন
+
+═══════════════════════════════════════════════
+💰 License Renewal:
+═══════════════════════════════════════════════
+
+মেয়াদ শেষ হওয়ার 7 দিন আগে warning পাবেন
+
+Renewal করতে:
+
+📱 01739354392 এ WhatsApp করুন
+💳 Payment: bKash/Nagad/Rocket
+🔑 নতুন license key পাবেন
+
+Price:
+• 1 মাস: ৳500
+• 3 মাস: ৳1,200
+• 6 মাস: ৳2,000
+• 1 বছর: ৳3,000
+
+═══════════════════════════════════════════════
+✅ Success Checklist:
+═══════════════════════════════════════════════
+
+Installation সফল হয়েছে কিনা check করুন:
+
+[ ] .env ফাইল পেয়েছেন
+[ ] License তথ্য paste করেছেন
+[ ] কোন extra space নেই
+[ ] File save করেছেন (Ctrl+S)
+[ ] Server restart করেছেন
+[ ] Terminal এ "LICENSE VALID" দেখছে
+[ ] Browser এ system খুলছে
+[ ] Bill generate করতে পারছেন
+[ ] WhatsApp message পাঠাতে পারছেন
+
+সব ✅ হলে সফল! 🎉
+
+═══════════════════════════════════════════════
+✨ Sajib Digital Hub ✨
+═══════════════════════════════════════════════
+
+📱 WhatsApp: 01739354392
+💬 Facebook: fb.com/sajibrasel2
+📧 Email: raselsajib25@gmail.com
+🌐 Support: 24/7 available
+
+© 2024-2026 | Made with ❤️ in Bangladesh 🇧🇩
+
+═══════════════════════════════════════════════
+
+এই guide print করে রাখতে পারেন 📄
+যেকোনো সমস্যায় যোগাযোগ করুন 📞
+
+সফলতা কামনা করছি! 🚀✨
