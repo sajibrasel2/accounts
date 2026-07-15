@@ -80,7 +80,15 @@ const initializeWhatsApp = () => {
     }),
     puppeteer: {
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu'
+      ]
     }
   });
 
@@ -1494,7 +1502,25 @@ async function startServer() {
 process.on('SIGINT', async () => {
   console.log('\n\n🛑 Shutting down gracefully...');
   if (whatsappClient) {
-    await whatsappClient.destroy();
+    try {
+      await whatsappClient.destroy();
+      console.log('✅ WhatsApp client closed');
+    } catch (error) {
+      console.error('Error closing WhatsApp:', error);
+    }
+  }
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('\n\n🛑 Received SIGTERM, shutting down...');
+  if (whatsappClient) {
+    try {
+      await whatsappClient.destroy();
+      console.log('✅ WhatsApp client closed');
+    } catch (error) {
+      console.error('Error closing WhatsApp:', error);
+    }
   }
   process.exit(0);
 });

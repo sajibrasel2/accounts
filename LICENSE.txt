@@ -1,0 +1,28 @@
+END-USER LICENSE AGREEMENT (EULA)
+
+POS Billing System - Desktop Application
+Version 3.0.0
+Copyright © 2026 Sajib Digital Hub
+
+This software is provided by Sajib Digital Hub for use by authorized clients only.
+
+LICENSE TERMS:
+1. This software is licensed, not sold.
+2. One license permits installation on one computer.
+3. You may not distribute, sublicense, or resell this software.
+4. The software is provided "as is" without warranty.
+5. License expires on the date specified in your license key.
+
+SUPPORT:
+For support, contact:
+- WhatsApp: +880 1739354392
+- Facebook: @sajibrasel2
+- Email: raselsajib25@gmail.com
+
+RENEWAL:
+Contact Sajib Digital Hub for license renewal before expiration.
+
+By installing this software, you agree to these terms.
+
+Sajib Digital Hub
+Bangladesh

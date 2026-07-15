@@ -1,14 +1,94 @@
 {
-  "name": "billing-whatsapp-automation",
+  "name": "pos-billing-desktop",
   "version": "3.0.0",
-  "description": "Professional POS Billing System with Free Trial, Statement System, and Dual Backup",
-  "main": "server.js",
+  "description": "Professional POS Billing Desktop Application with WhatsApp Automation - Sajib Digital Hub",
+  "main": "main.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "server": "node server.js",
+    "build": "electron-builder --win",
+    "build:all": "electron-builder -mwl",
+    "build:win": "electron-builder --win --x64",
+    "build:portable": "electron-builder --win portable",
+    "pack": "electron-builder --dir"
   },
-  "keywords": ["billing", "whatsapp", "automation", "express", "mysql", "statement", "backup"],
-  "author": "Sajib Digital Hub",
+  "build": {
+    "appId": "com.sajibdigitalhub.posbilling",
+    "productName": "POS Billing System",
+    "copyright": "Copyright © 2026 Sajib Digital Hub",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "**/*",
+      "!dist/**/*",
+      "!node_modules/**/*",
+      "node_modules/**/*",
+      "!.git/**/*",
+      "!.wwebjs_auth/**/*",
+      "!.wwebjs_cache/**/*",
+      "!backups/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "${productName}-${version}-Setup.${ext}",
+      "publisherName": "Sajib Digital Hub"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "POS Billing System",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "license": "LICENSE.txt"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-Portable.${ext}"
+    },
+    "mac": {
+      "target": ["dmg", "zip"],
+      "icon": "build/icon.icns",
+      "category": "public.app-category.business"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "build/icon.png",
+      "category": "Office"
+    }
+  },
+  "keywords": [
+    "billing",
+    "whatsapp",
+    "automation",
+    "express",
+    "mysql",
+    "statement",
+    "backup",
+    "electron",
+    "desktop",
+    "pos",
+    "point-of-sale"
+  ],
+  "author": {
+    "name": "Sajib Digital Hub",
+    "email": "raselsajib25@gmail.com",
+    "url": "https://facebook.com/sajibrasel2"
+  },
   "license": "ISC",
   "dependencies": {
     "express": "^4.18.2",
@@ -18,9 +98,12 @@
     "qrcode-terminal": "^0.12.0",
     "qrcode": "^1.5.3",
     "cors": "^2.8.5",
-    "multer": "^1.4.5-lts.1"
+    "multer": "^1.4.5-lts.1",
+    "axios": "^1.6.2"
   },
   "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
     "nodemon": "^3.0.2"
   }
 }
